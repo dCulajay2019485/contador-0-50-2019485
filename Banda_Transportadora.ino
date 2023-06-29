@@ -7,105 +7,99 @@ NOMBRES:
 *Edgar Emmanuel Galvez Bol
 Carnet
 *2019485
-*2019
-
+*2019253
 */
 
-#include <Stepper.h>
-#include <Servo.h>
-
-#define LDR    A0  
-#define ledAzul  2   
-#define ledVerde 3   
-#define ledRojo  4   
-#define PIN1 15  
-#define PIN2 16  
-#define PIN3 17 
-#define PIN4 18  
-#define sensorO 12  
+#define LDR A0  
+#define ledA  2   
+#define ledV 3   
+#define ledR  4   
+#define pinINA 15  
+#define pinINB 16 
+#define pinINC 17  
+#define pinIND 18  
+#define SenOb 12  
 #define valido 8   
 #define invalido 9  
 
-int resultado_azul, resultado_rojo, resultado_verde;
-int resultado;
 
+int resrojo , resverde , resazul;
+
+int RES;
+
+//Valor de umbral 
 int tol = 8; 
 
-Stepper Banda(2048,PIN1,PIN2,PIN3,PIN4);   
-Servo CuGa;  
+Stepper Motor(2048,pinINA,pinINC,pinINB,pinIND);   
+Servo stepper;  
 
 void setup() {
   //Comunicacion serial
   Serial.begin(9600);
 
+  //Configuracion de I/O 
   pinMode(LDR, INPUT); 
-  pinMode(ledAzul, OUTPUT); 
-  pinMode(ledVerde, OUTPUT); 
-  pinMode(ledRojo, OUTPUT);  
+  pinMode(ledA, OUTPUT); 
+  pinMode(ledV, OUTPUT); 
+  pinMode(ledR, OUTPUT);  
   pinMode(valido, OUTPUT);
   pinMode(invalido, OUTPUT);
-  
-  digitalWrite(ledAzul, LOW);
-  digitalWrite(ledVerde, LOW);
-  digitalWrite(ledRojo, LOW);
-  
-  
-  BanTrasn.setSpeed(15);
-
-  CuGa.attach(6);
-  CuGa.write(180);  
+  digitalWrite(ledA, LOW);
+  digitalWrite(ledV, LOW);
+  digitalWrite(ledR, LOW);
+  Motor.setSpeed(15);
+  stepper.attach(6);
+  stepper.write(180); 
 }
 
 void loop() {
-  if(digitalRead(sensorO) == true){  
-    BanTrasn.step(-1);
+  if(digitalRead(SenOb) == true){  
+    Motor.step(-1);
     }
-    if(digitalRead(sensorO) == false){   
+    if(digitalRead(SenOb) == false){   
     color();
     }
 }
 int color(){
-  digitalWrite(ledRojo, HIGH);
+  digitalWrite(ledR, HIGH);
   delay(50);
-  resultado = analogRead(LDR);
-  resultado_rojo = map(resultado, 0,1023,0,255);  
-  digitalWrite(ledRojo, LOW);
-  delay(50);
-  digitalWrite(ledVerde, HIGH);
+  RES = analogRead(LDR);
+  resrojo = map(RES, 0,1023,0,255);
+  digitalWrite(ledR, LOW);
   delay(50);
 
+  digitalWrite(ledV, HIGH);
+  delay(50);
+  RES = analogRead(LDR);
+  resverde = map(RES, 0,1023,0,255);  
+  digitalWrite(ledV, LOW);
+  delay(50);
+  digitalWrite(ledA, HIGH);
+  delay(50);
   
-  resultado = analogRead(LDR);
-  resultado_verde = map(resultado, 0,1023,0,255);  
-  digitalWrite(ledVerde, LOW);
-  delay(50);
-  digitalWrite(ledAzul, HIGH);
+  RES = analogRead(LDR);
+  resazul = map(RES, 0,1023,0,255);  
+  digitalWrite(ledA, LOW);
   delay(50);
 
-  
-  resultado = analogRead(LDR);
-  resultado_azul = map(resultado, 0,1023,0,255);  
-  digitalWrite(ledAzul, LOW);
-  delay(50);
-
-  if(resultado_verde > resultado_azul && resultado_verde > resultado_rojo){  
+  if(resrojo > resazul && resrojo > resverde){  
     digitalWrite(valido, HIGH); 
-    Serial.println("Verde OK");
+    Serial.println("Rojo OK");
     Serial.println("Posicionado");
-    BanTrasn.step(-2048);    /
+    Motor.step(-2048);    
     delay(100);
     Serial.println("Piston");
-    CuGa.write(0);  
+    stepper.write(0);  
     delay(500);
-    CuGa.write(180);  
+    stepper.write(180);
     digitalWrite(valido, LOW); 
     }
     else{
-      Serial.println("No valido");  
+      Serial.println("No detectado");  
       for(int i = 0; i < 12; i++){
       digitalWrite(invalido, !digitalRead(invalido));
       delay(100);
       }
-      BanTrasn.step(-5000);   
+      Motor.step(-5000);   
       }
   }
